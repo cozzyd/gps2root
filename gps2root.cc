@@ -41,21 +41,26 @@ int count_leaps(int gps_time)
 
 struct gpstime
 {
-  int ns;
-  time_t unixtime; 
-  double itow; 
+  int ns = 0;
+  time_t unixtime=0; 
+  double itow=0; 
 };
 
 template<typename T> 
 gpstime extract_time(T js, const std::string key = "time") 
 {
-  std::string t = js[key].template get<std::string>(); 
+  auto val = js[key]; 
+  gpstime ret; 
+  if (val.is_null())
+  {
+    return ret; 
+  }
+  std::string t = val.template get<std::string>(); 
   int year,mon,day,hour,min; 
   double sec; 
   
   sscanf(t.c_str(),"%04d-%02d-%02dT%02d:%02d:%lfZ",&year,&mon,&day,&hour,&min,&sec); 
 
-  gpstime ret; 
   ret.ns = 1e9*(sec - int(sec)); 
 
 
@@ -315,7 +320,7 @@ int main(int nargs, char ** args)
          gpstime t = extract_time(fragment); 
          sky.itow = t.itow; 
 
-#define X(type,what,dflt) sky.what = fragment[#what].template get<type>(); 
+#define X(type,what,dflt)  auto what##val = fragment[#what]; sky.what = what##val.is_null() ? dflt : what##val.template get<type>(); 
          SKY_MSG_DIRECT_COPY
 #undef X
 #define X(type,what,dflt) auto what##val = fragment["satellites"][i][#what];  sky.what = what##val.is_null() ? dflt : what##val.template get<type>(); 
@@ -341,7 +346,7 @@ int main(int nargs, char ** args)
          tpv.unix_time = t.unixtime + t.ns * 1e-9;  
          tpv.itow = t.itow; 
 
-#define X(type,what,dflt)  tpv.what = fragment[#what].template get<type>(); 
+#define X(type,what,dflt)  auto what##val = fragment[#what]; tpv.what = what##val.is_null() ? dflt : what##val.template get<type>(); 
          TPV_MSG_DIRECT_COPY
 #undef X
          tpv_tree->Fill(); 
