@@ -141,7 +141,8 @@ raw_msg raw;
   X(int,health,-1)
 
 #define SKY_MSG_HDR\
-  X(double,itow,-1)
+  X(double,itow,-1)\
+  X(double,unix_time,-1)
 
 #define SKY_MSG\
   SKY_MSG_HDR\
@@ -319,6 +320,7 @@ int main(int nargs, char ** args)
 
          gpstime t = extract_time(fragment); 
          sky.itow = t.itow; 
+         sky.unix_time = t.unixtime; 
 
 #define X(type,what,dflt)  auto what##val = fragment[#what]; sky.what = what##val.is_null() ? dflt : what##val.template get<type>(); 
          SKY_MSG_DIRECT_COPY
